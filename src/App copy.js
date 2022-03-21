@@ -1,37 +1,65 @@
-import React, { useRef, useState } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import React, { Component } from "react";
+import ReactDOM from "react-dom";
+import * as THREE from "three";
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+export default class App extends Component {
+  componentDidMount() {
 
-function Box(props) {
-  // This reference gives us direct access to the THREE.Mesh object
-  const ref = useRef()
-  // Hold state for hovered and clicked events
-  const [hovered, hover] = useState(false)
-  const [clicked, click] = useState(false)
-  // Subscribe this component to the render-loop, rotate the mesh every frame
-  useFrame((state, delta) => (ref.current.rotation.x += 0.01))
-  // Return the view, these are regular Threejs elements expressed in JSX
-  return (
-    <mesh
-      {...props}
-      ref={ref}
-      scale={clicked ? 1.5 : 1}
-      onClick={(event) => click(!clicked)}
-      onPointerOver={(event) => hover(true)}
-      onPointerOut={(event) => hover(false)}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
-    </mesh>
-  )
-}
+    var camPosIndex = 1;
+    var scrollDist = 0;
 
-export default function App() {
-  return (
-    <Canvas>
-      <ambientLight intensity={0.5} />
-      <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
-      <pointLight position={[-10, -10, -10]} />
-      <Box position={[-1.2, 0, 0]} />
-      <Box position={[1.2, 0, 0]} />
-    </Canvas>
-  )
+    var scene = new THREE.Scene();
+    scene.background = new THREE.Color('white')
+    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    var renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    var trackCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(4.26, 1.17, 12.29),
+      new THREE.Vector3(0.5, 1.05, 7.94),
+      new THREE.Vector3(0, 1, 2.27),
+      new THREE.Vector3(0, 2, -10),
+    ], false, "centripetal");
+
+    var target = new THREE.Vector3(4, 0, 0)
+
+    const loader = new GLTFLoader();
+    loader.load(
+      // resource URL
+      'indiast.glb',
+      // called when the resource is loaded
+      function (gltf) {
+        gltf.scene.children[0].material.side = THREE.FrontSide
+        console.log(gltf.scene.children[0].material)
+        scene.add(gltf.scene);
+        
+      })
+   
+    var geometry = new THREE.BoxGeometry(5, 5, 5);
+    var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    var cube = new THREE.Mesh(geometry, material);
+    //scene.add(cube);
+    camera.position.z = 5;
+    var animate = function () {
+      requestAnimationFrame(animate);
+      scrollDist += 0.02
+      camPosIndex = THREE.MathUtils.lerp(camPosIndex, scrollDist * 30, 0.05);
+      const camPos = trackCurve.getPoint(camPosIndex / 1000)
+      camera.position.set(camPos.x, camPos.y, camPos.z)
+      camera.lookAt(target)
+
+      camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
+    };
+    animate();
+
+  }
+  render() {
+    return (
+      <div />
+    )
+  }
 }
+const rootElement = document.getElementById("root");
+//ReactDOM.render(<App />, rootElement);

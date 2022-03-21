@@ -36,7 +36,7 @@ var trackCurve = new THREE.CatmullRomCurve3([
 ], false, "centripetal");
 
 var camPosIndex = 1;
-var scrollDist = 0;
+var scrollDist = 1;
 //var target = [0,0,0]
 
 function Dolly() {
@@ -45,19 +45,35 @@ function Dolly() {
     const camPos = trackCurve.getPoint(camPosIndex / 1000)
     //state.camera.position.z = 40 + Math.sin(state.clock.getElapsedTime()) * 20
     state.camera.position.set(camPos.x, camPos.y, camPos.z)
-    state.camera.lookAt(4,0,0)
+    state.camera.lookAt(4, 0, 0)
     state.camera.updateProjectionMatrix()
   })
   return null
 }
 
+
 export default function App() {
+  const scrollArea = useRef();
+  
+  function onScroll(e){
+    e = e.deltaY / 400
+    scrollDist += e
+    scrollDist = THREE.MathUtils.clamp(scrollDist, 0, 100)
+    if (isNaN(scrollDist)) {
+      scrollDist = 0
+    }
+  } 
+  
+  useEffect(() => void onScroll({ target: scrollArea.current }), []);
+
   return (
-    <Canvas>
-      <Suspense fallback='null'>
-        <Model position={[-1.2, 0, 0]} onWheel={(e) => scrollDist+=0.2} />
-      </Suspense>
-      <Dolly/>
-    </Canvas>
+    <span onWheel={onScroll}>
+      <Canvas>
+        <Suspense fallback='null'>
+          <Model position={[0, 0, 0]} />
+        </Suspense>
+        <Dolly />
+      </Canvas>
+    </span>
   )
 }
