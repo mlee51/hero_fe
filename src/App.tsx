@@ -1,14 +1,15 @@
 import React, { useRef, Suspense, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from "three";
-import Model from './Dmodel.tsx'
+import Model from './Dmodel'
 
 const trackCurve: THREE.CatmullRomCurve3 = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(4.26, 1.17, 12.29),
-  new THREE.Vector3(0.5, 1.05, 7.94),
-  new THREE.Vector3(0, 1, 2.27),
-  new THREE.Vector3(0, 2, -10),
-], false, "centripetal");
+  new THREE.Vector3(10.26, 3.17, 8.29),
+  new THREE.Vector3(-5, 4.17, 4),
+  new THREE.Vector3(-3, 10, 1),
+  new THREE.Vector3(0, 5, 0),
+  new THREE.Vector3(1.2, 1, 0),
+], false, "catmullrom", 0.6);
 
 var camPosIndex: number = 0;
 var scrollDist: number = 0;
@@ -18,7 +19,7 @@ function Dolly() {
     camPosIndex = THREE.MathUtils.lerp(camPosIndex, scrollDist * 30, 0.05);
     const camPos: THREE.Vector3 = trackCurve.getPoint(camPosIndex / 1000)
     state.camera.position.set(camPos.x, camPos.y, camPos.z)
-    state.camera.lookAt(4, 0, 0)
+    state.camera.lookAt(3, 0, 0)
     state.camera.updateProjectionMatrix()
   })
   return null
@@ -41,9 +42,9 @@ export default function App() {
 
   return (
     <span onWheel={onScroll}>
-      <Canvas>
+      <Canvas  gl={{ antialias: false }} dpr={window.devicePixelRatio}>
         <Suspense fallback='null'>
-          <Model position={[0, 0, 0]} />
+          <Model position={[1.5, 0, 0]} />
         </Suspense>
         <Dolly />
       </Canvas>
