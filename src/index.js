@@ -8,6 +8,7 @@ import './styles.css'
 ReactDOM.render(
   <React.StrictMode>
     <App />
+    <div className="scrollTarget"></div>
   </React.StrictMode>,
   document.getElementById('root')
 );
