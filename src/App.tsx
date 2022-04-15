@@ -15,7 +15,7 @@ const trackCurve: THREE.CatmullRomCurve3 = new THREE.CatmullRomCurve3([
 ], false, "catmullrom", 0.6);
 
 var camPosIndex: number = 0;
-var scrollDist: number = 0;
+//var scrollDist: number = 0;
 
 var _scrollDist = {
   value: 0
@@ -23,7 +23,7 @@ var _scrollDist = {
 
 function Dolly() {
   useFrame((state) => {
-    camPosIndex = THREE.MathUtils.lerp(camPosIndex, _scrollDist.value * 30, 0.05);
+    camPosIndex = THREE.MathUtils.lerp(camPosIndex, _scrollDist.value * 100, 0.05);
     const camPos: THREE.Vector3 = trackCurve.getPoint(camPosIndex / 1000)
     state.camera.position.set(camPos.x, camPos.y, camPos.z)
     state.camera.lookAt(3, 0, 0)
@@ -32,36 +32,52 @@ function Dolly() {
   return null
 }
 
+function Feature(props) {
+  const ref = useRef()
+  useFrame((state) => (ref.current.visible = _scrollDist.value > 1 ? true : false, ref.current.children.forEach(e => e.lookAt(state.camera.position))))
+  return (
+    <group {...props} ref={ref}>
+      <mesh position={[0, 0, 0.01]} >
+        <circleGeometry attach="geometry" args={[0.15, 128]} />
+        <meshBasicMaterial attach="material" color="magenta" />
+      </mesh>
+      <mesh>
+        <circleGeometry attach="geometry" args={[0.3, 128]} />
+        <meshBasicMaterial attach="material" color="white" />
+      </mesh>
+      <mesh position={[0, -0.03, -0.03]}>
+        <circleGeometry attach="geometry" args={[0.305, 128]} />
+        <meshBasicMaterial opacity={0.25} transparent attach="material" color="black" />
+      </mesh>
+    </group>
+  )
+}
 
 export default function App() {
   const [main, setMain] = useState()
   var tubePerc = {
     percent: 0
   }
-
   gsap.registerPlugin(ScrollTrigger)
-
-
-
   const ref = useRef()
 
-  function onScroll(e) {/*
+  /*function onScroll(e) {
     e = e.deltaY / 400
     scrollDist += e
     scrollDist = THREE.MathUtils.clamp(scrollDist, 0, 100)
     if (isNaN(scrollDist)) {
       scrollDist = 0
-    }*/
+    }
   }
+  useEffect(() => void onScroll({ target: scrollArea.current }), []);*/
 
-  //useEffect(() => void onScroll({ target: scrollArea.current }), []);
   useEffect(() => {
     setMain(ref.current.children[1])
   }, [main])
 
   return (
     <main ref={ref}>
-     <div className="canvas3D">
+      <div className="canvas3D">
         <Canvas3D mainRef={main} />
       </div>
       <Content />
@@ -70,10 +86,6 @@ export default function App() {
 }
 
 function Canvas3D({ mainRef }) {
-  let animable = {
-    x: -3,
-    y: -3
-  }
 
   useEffect(() => {
     if (mainRef) {
@@ -89,19 +101,6 @@ function Canvas3D({ mainRef }) {
         }
       })
       tl1.to(_scrollDist, {
-        value: 3
-      })
-      const tl3 = gsap.timeline({
-        scrollTrigger: {
-          trigger: '.section-two',
-          start: 'top top',
-          endTrigger: '.section-three',
-          end: 'bottom bottom',
-          markers: true,
-          scrub: 1
-        }
-      })
-      tl3.to(_scrollDist, {
         value: 3
       })
       const tl2 = gsap.timeline({
@@ -125,6 +124,8 @@ function Canvas3D({ mainRef }) {
         <Model position={[1.5, 0, 0]} />
       </Suspense>
       <Dolly />
+      <Feature position={[1.2, 0, 0]} />
+      <Feature position={[3.2, -0.5, 0]} />
     </Canvas>
   )
 }
